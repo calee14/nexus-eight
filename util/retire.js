@@ -36,31 +36,168 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.retireNexus8 = retireNexus8;
+exports.retireNexus6 = retireNexus6;
+exports.retireNexus9 = retireNexus9;
+exports.retireNexus4 = retireNexus4;
 var axios_1 = require("axios");
 var cheerio = require("cheerio");
-function retireNexus8(url) {
+/*
+ * returns recent price-earnings-growth ratio
+ * */
+function retireNexus8(ticker) {
     return __awaiter(this, void 0, void 0, function () {
-        var data, $_1, targetTds, pegRatios, error_1;
+        var url, data, $_1, dateTds, periods, targetTds, pegRatios_1, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    _a.trys.push([0, 2, 3, 4]);
+                    url = "https://stockanalysis.com/stocks/".concat(ticker.toLowerCase(), "/financials/ratios/?p=quarterly");
                     return [4 /*yield*/, axios_1.default.get(url)];
                 case 1:
                     data = (_a.sent()).data;
                     $_1 = cheerio.load(data);
+                    dateTds = $_1('div').filter(function () {
+                        return $_1(this).text().trim() === "Period Ending";
+                    }).parent().siblings();
+                    periods = dateTds.toArray()
+                        .map(function (ele) { return $_1(ele).text(); });
                     targetTds = $_1('div').filter(function () {
                         return $_1(this).text().trim() === "PEG Ratio";
                     }).parent().siblings();
-                    console.log(targetTds.text());
-                    pegRatios = targetTds.toArray()
+                    pegRatios_1 = targetTds.toArray()
                         .map(function (ele) { return parseFloat($_1(ele).text()); })
                         .filter(function (num) { return !Number.isNaN(num); });
-                    console.log(pegRatios);
-                    return [3 /*break*/, 3];
+                    periods.splice(pegRatios_1.length);
+                    if (periods.length === pegRatios_1.length) {
+                        console.log(periods.map(function (period, i) { return [period, pegRatios_1[i]]; }));
+                        return [2 /*return*/, periods.map(function (period, i) { return [period, pegRatios_1[i]]; })];
+                    }
+                    return [3 /*break*/, 4];
                 case 2:
                     error_1 = _a.sent();
                     console.error('Error fetching or parsing the page:', error_1);
+                    return [2 /*return*/, []];
+                case 3: return [2 /*return*/, []];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+/*
+ * returns recent growth rates
+ * */
+function retireNexus6(ticker) {
+    return __awaiter(this, void 0, void 0, function () {
+        var url, data, $_2, dateTds, periods, targetTds, revGrowth_1, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    url = "https://stockanalysis.com/stocks/".concat(ticker.toLowerCase(), "/financials/?p=quarterly");
+                    return [4 /*yield*/, axios_1.default.get(url)];
+                case 1:
+                    data = (_a.sent()).data;
+                    $_2 = cheerio.load(data);
+                    dateTds = $_2('div').filter(function () {
+                        return $_2(this).text().trim() === "Period Ending";
+                    }).parent().siblings();
+                    periods = dateTds.toArray()
+                        .map(function (ele) { return $_2(ele).text(); });
+                    targetTds = $_2('div').filter(function () {
+                        return $_2(this).text().trim() === "Revenue Growth (YoY)";
+                    }).parent().siblings();
+                    revGrowth_1 = targetTds.toArray()
+                        .map(function (ele) { return parseFloat($_2(ele).text()); })
+                        .filter(function (num) { return !Number.isNaN(num); });
+                    periods.splice(revGrowth_1.length);
+                    if (periods.length === revGrowth_1.length) {
+                        return [2 /*return*/, periods.map(function (period, i) { return [period, revGrowth_1[i]]; })];
+                    }
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_2 = _a.sent();
+                    console.error('Error fetching or parsing the page:', error_2);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+/*
+ * returns recent p/fcf rates
+ * */
+function retireNexus9(ticker) {
+    return __awaiter(this, void 0, void 0, function () {
+        var url, data, $_3, dateTds, periods, targetTds, fcfRatios_1, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    url = "https://stockanalysis.com/stocks/".concat(ticker.toLowerCase(), "/financials/ratios/?p=quarterly");
+                    return [4 /*yield*/, axios_1.default.get(url)];
+                case 1:
+                    data = (_a.sent()).data;
+                    $_3 = cheerio.load(data);
+                    dateTds = $_3('div').filter(function () {
+                        return $_3(this).text().trim() === "Period Ending";
+                    }).parent().siblings();
+                    periods = dateTds.toArray()
+                        .map(function (ele) { return $_3(ele).text(); });
+                    targetTds = $_3('div').filter(function () {
+                        return $_3(this).text().trim() === "P/FCF Ratio";
+                    }).parent().siblings();
+                    fcfRatios_1 = targetTds.toArray()
+                        .map(function (ele) { return parseFloat($_3(ele).text()); })
+                        .filter(function (num) { return !Number.isNaN(num); });
+                    periods.splice(fcfRatios_1.length);
+                    if (periods.length === fcfRatios_1.length) {
+                        return [2 /*return*/, periods.map(function (period, i) { return [period, fcfRatios_1[i]]; })];
+                    }
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_3 = _a.sent();
+                    console.error('Error fetching or parsing the page:', error_3);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+/*
+ * returns recent p/s rates
+ * */
+function retireNexus4(ticker) {
+    return __awaiter(this, void 0, void 0, function () {
+        var url, data, $_4, dateTds, periods, targetTds, fcfRatios_2, error_4;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    url = "https://stockanalysis.com/stocks/".concat(ticker.toLowerCase(), "/financials/ratios/?p=quarterly");
+                    return [4 /*yield*/, axios_1.default.get(url)];
+                case 1:
+                    data = (_a.sent()).data;
+                    $_4 = cheerio.load(data);
+                    dateTds = $_4('div').filter(function () {
+                        return $_4(this).text().trim() === "Period Ending";
+                    }).parent().siblings();
+                    periods = dateTds.toArray()
+                        .map(function (ele) { return $_4(ele).text(); });
+                    targetTds = $_4('div').filter(function () {
+                        return $_4(this).text().trim() === "PS Ratio";
+                    }).parent().siblings();
+                    fcfRatios_2 = targetTds.toArray()
+                        .map(function (ele) { return parseFloat($_4(ele).text()); })
+                        .filter(function (num) { return !Number.isNaN(num); });
+                    periods.splice(fcfRatios_2.length);
+                    if (periods.length === fcfRatios_2.length) {
+                        return [2 /*return*/, periods.map(function (period, i) { return [period, fcfRatios_2[i]]; })];
+                    }
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_4 = _a.sent();
+                    console.error('Error fetching or parsing the page:', error_4);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
@@ -68,4 +205,7 @@ function retireNexus8(url) {
     });
 }
 // Replace with the URL you want to scrape
-retireNexus8('https://stockanalysis.com/stocks/crwd/financials/ratios/?p=quarterly');
+retireNexus8('CRWD');
+// retireNexus6('CRWD');
+// retireNexus9('CRWD');
+// retireNexus4('CRWD');

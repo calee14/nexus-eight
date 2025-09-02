@@ -1,5 +1,5 @@
 // components/SmartTable.tsx
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { isSmartCell, SmartCell, SmartColumn, SmartRow } from '@/types';
 
 interface SmartTableProps {
@@ -7,16 +7,94 @@ interface SmartTableProps {
   columns: SmartColumn | undefined;
 }
 
+interface PopupState {
+  isOpen: boolean;
+  value: any;
+  position: { x: number, y: number };
+  cellRef: HTMLElement | null;
+}
+
 const SmartTable = ({ data, columns }: SmartTableProps) => {
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
+  const [popup, setPopup] = useState<PopupState>({
+    isOpen: false,
+    value: null,
+    position: { x: 0, y: 0 },
+    cellRef: null,
+  });
+  const tableRef = useRef<HTMLDivElement>(null);
 
-  if (!columns) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-        <p className="text-gray-800">No columns defined</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handleGlobalMouseMove = (event: MouseEvent) => {
+      if (popup.isOpen && popup.cellRef) {
+        const popupElement = document.getElementById('smart-cell-popup');
+        const isOverCell = popup.cellRef.contains(event.target as Node);
+        const isOverPopup = popupElement?.contains(event.target as Node);
+
+        if (!isOverCell && !isOverPopup) {
+          setPopup(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    };
+
+    if (popup.isOpen) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      return () => document.removeEventListener('mousemove', handleGlobalMouseMove);
+    }
+  }, [popup.isOpen, popup.cellRef]);
+
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    setSelectedCell({ row: rowIndex, col: colIndex });
+  };
+
+  const handleCellMouseEnter = (
+    value: any,
+    event: React.MouseEvent<HTMLTableCellElement>
+  ) => {
+    if (isSmartCell(value)) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const tableRect = tableRef.current?.getBoundingClientRect();
+      setTimeout(() => {
+        setPopup({
+          isOpen: true,
+          value: value,
+          position: {
+            x: rect.right - (tableRect?.left || 0),
+            y: rect.top - (tableRect?.top || 0)
+          },
+          cellRef: event.currentTarget
+        });
+
+      }, 100);
+    }
+  };
+
+  const handleCellMouseLeave = () => {
+    // Small delay to allow moving to popup without closing
+    setTimeout(() => {
+      if (!popup.cellRef?.matches(':hover') && !document.getElementById('smart-cell-popup')?.matches(':hover')) {
+        setPopup(prev => ({ ...prev, isOpen: false }));
+      }
+    }, 100);
+  };
+
+  // create cell
+  const renderCellValue = (value: any): React.ReactNode => {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (isSmartCell(value)) {
+      const cell = value as SmartCell;
+      return cell?.at(0)?.at(1);
+    }
+
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+
+    return String(value);
+  };
 
   // Convert column letters (A, B, C, etc.)
   const getColumnLetter = (index: number): string => {
@@ -28,36 +106,14 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
     return result;
   };
 
-  const renderCellValue = (value: any): React.ReactNode => {
-    if (value === null || value === undefined) {
-      return '';
-    }
-
-    if (isSmartCell(value)) {
-      const cell = value as SmartCell;
-      return cell?.at(0)?.at(1);
-    } else if (Array.isArray(value)) {
-      // Handle nested arrays
-      if (value.length === 0) return '';
-
-      if (Array.isArray(value[0])) {
-        // For arrays like [['2023', 1.5], ['2024', 1.2]]
-        return value.map((item: any[], idx: number) => (
-          <div key={idx} className="text-xs leading-tight">
-            {item[0]}: {item[1]}
-          </div>
-        ));
-      }
-
-      return value.join(', ');
-    }
-
-    if (typeof value === 'number') {
-      return value.toLocaleString();
-    }
-
-    return String(value);
-  };
+  // if no columns render nothing
+  if (!columns) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+        <p className="text-gray-800">No columns defined</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
@@ -111,6 +167,8 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
                 {/* Data cells */}
                 {columns.keys.map((key, colIndex) => {
                   const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
+                  const cellValue = row[key];
+
                   return (
                     <td
                       key={colIndex}
@@ -119,7 +177,9 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
                         hover:bg-blue-50 transition-colors relative text-gray-600
                         ${isSelected ? 'bg-blue-100 ring-2 ring-blue-500 ring-inset' : 'bg-white'}
                       `}
-                      onClick={() => setSelectedCell({ row: rowIndex, col: colIndex })}
+                      onClick={() => handleCellClick(rowIndex, colIndex)}
+                      onMouseEnter={(e) => handleCellMouseEnter(cellValue, e)}
+                      onMouseLeave={handleCellMouseLeave}
                     >
                       <div className="truncate">
                         {renderCellValue(row[key])}
@@ -147,6 +207,15 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
         </table>
       </div>
 
+      {/* Custom Popup for SmartCell */}
+      <SmartCellPopup
+        isOpen={popup.isOpen}
+        value={popup.value}
+        position={popup.position}
+        onMouseEnter={() => {/* Keep popup open when hovering over it */ }}
+        onMouseLeave={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+      />
+
       {/* Excel-style status bar */}
       <div className="bg-gray-100 border-t border-gray-300 px-4 py-1 text-xs text-gray-600 flex justify-between">
         <span className='text-green-500 font-bold'>Ready</span>
@@ -161,3 +230,62 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
 };
 
 export default SmartTable;
+
+interface SmartCellPopupProps {
+  isOpen: boolean;
+  value: any;
+  position: { x: number, y: number };
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
+const SmartCellPopup: React.FC<SmartCellPopupProps> = ({
+  isOpen,
+  value,
+  position,
+  onMouseEnter,
+  onMouseLeave
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      id="smart-cell-popup"
+      className="absolute bg-white border-2 border-blue-500 rounded-lg shadow-xl p-4 z-50 min-w-64 max-w-80"
+      style={{
+        left: position.x + 10,
+        top: position.y + 30,
+        transform: position.x > 300 ? 'translateX(-100%)' : 'none'
+      }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+        <h3 className="font-medium text-gray-800">Last Calculated: {value.at(0).at(0)}</h3>
+      </div>
+
+      {/* Content Area - You can customize this */}
+      <div className="space-y-2">
+        <div className="text-sm text-gray-600">
+          Raw Data:
+        </div>
+        <div className="bg-gray-50 p-2 rounded text-xs font-mono max-h-32 overflow-y-auto">
+          {JSON.stringify(value, null, 2)}
+        </div>
+
+        {/* Add your custom popup content here */}
+        <div className="mt-4 space-y-2">
+          <div className="text-sm font-medium text-gray-700">
+            Custom Content Area
+          </div>
+          <div className="text-sm text-gray-600">
+            {/* This is where you'll implement your custom popup content */}
+            Replace this with your custom component/content
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+};

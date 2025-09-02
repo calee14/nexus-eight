@@ -1,6 +1,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
+const SLICE_DATE = 7; // index of last unwanted date
+const SLICE_DATA = 7;
 /*
  * returns recent price-earnings-growth ratio
  * */
@@ -15,7 +17,7 @@ export async function retireNexus8(ticker: string) {
       return $(this).text().trim() === "Period Ending";
     }).parent().siblings();
     const periods = dateTds.toArray()
-      .map(ele => $(ele).text());
+      .map(ele => $(ele).text().slice(SLICE_DATE));
 
     // get peg ratios 
     const targetTds = $('div').filter(function () {
@@ -23,7 +25,8 @@ export async function retireNexus8(ticker: string) {
     }).parent().siblings();
     const pegRatios: number[] = targetTds.toArray()
       .map(ele => parseFloat($(ele).text()))
-      .filter(num => !Number.isNaN(num));
+      .filter(num => !Number.isNaN(num))
+      .slice(0, SLICE_DATA);
 
     periods.splice(pegRatios.length);
 
@@ -50,14 +53,15 @@ export async function retireNexus6(ticker: string) {
       return $(this).text().trim() === "Period Ending";
     }).parent().siblings();
     const periods = dateTds.toArray()
-      .map(ele => $(ele).text());
+      .map(ele => $(ele).text().slice(SLICE_DATE));
 
     const targetTds = $('div').filter(function () {
       return $(this).text().trim() === "Revenue Growth (YoY)";
     }).parent().siblings();
     const revGrowth: number[] = targetTds.toArray()
       .map(ele => parseFloat($(ele).text()))
-      .filter(num => !Number.isNaN(num));
+      .filter(num => !Number.isNaN(num))
+      .slice(0, SLICE_DATA);
 
     periods.splice(revGrowth.length);
 
@@ -84,14 +88,15 @@ export async function retireNexus9(ticker: string) {
       return $(this).text().trim() === "Period Ending";
     }).parent().siblings();
     const periods = dateTds.toArray()
-      .map(ele => $(ele).text());
+      .map(ele => $(ele).text().slice(SLICE_DATE));
 
     const targetTds = $('div').filter(function () {
       return $(this).text().trim() === "P/FCF Ratio";
     }).parent().siblings();
     const fcfRatios: number[] = targetTds.toArray()
       .map(ele => parseFloat($(ele).text()))
-      .filter(num => !Number.isNaN(num));
+      .filter(num => !Number.isNaN(num))
+      .slice(0, SLICE_DATA);
 
     periods.splice(fcfRatios.length);
 
@@ -118,14 +123,15 @@ export async function retireNexus4(ticker: string) {
       return $(this).text().trim() === "Period Ending";
     }).parent().siblings();
     const periods = dateTds.toArray()
-      .map(ele => $(ele).text());
+      .map(ele => $(ele).text().slice(SLICE_DATE));
 
     const targetTds = $('div').filter(function () {
       return $(this).text().trim() === "PS Ratio";
     }).parent().siblings();
     const fcfRatios: number[] = targetTds.toArray()
       .map(ele => parseFloat($(ele).text()))
-      .filter(num => !Number.isNaN(num));
+      .filter(num => !Number.isNaN(num))
+      .slice(0, SLICE_DATA);
 
     periods.splice(fcfRatios.length);
 
@@ -138,7 +144,7 @@ export async function retireNexus4(ticker: string) {
   }
 }
 // Replace with the URL you want to scrape
-retireNexus8('CRWD');
+// retireNexus8('CRWD');
 // retireNexus6('CRWD');
 // retireNexus9('CRWD');
 // retireNexus4('CRWD');

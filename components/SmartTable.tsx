@@ -96,6 +96,15 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
     return String(value);
   };
 
+  // add ticker
+  const handleAddTicker = (ticker: string) => {
+    if (ticker.trim()) {
+      console.log('Adding ticker:', ticker.trim().toUpperCase());
+      // Add your logic here to handle the new ticker
+      // For example: onAddTicker?.(ticker.trim().toUpperCase());
+    }
+  };
+
   // Convert column letters (A, B, C, etc.)
   const getColumnLetter = (index: number): string => {
     let result = '';
@@ -192,17 +201,39 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
 
             {/* Empty row to add new tickers */}
             <tr key={`empty`} className="border-b border-gray-100">
-              <td className="w-12 h-8 border-r border-gray-300 bg-gray-50 text-xs font-medium text-gray-400 text-center">
-                {data.length + 1}
+              <td
+                colSpan={columns.headers.length + 1}
+                className="h-8 border-r border-gray-200 bg-gray-25 p-0 relative"
+              >
+                <div className="flex items-center h-full">
+                  <input
+                    type="text"
+                    id="enter-new-symbol-input"
+                    placeholder="Enter new ticker symbol..."
+                    className="flex-1 h-full px-3 text-gray-600 bg-transparent border-none outline-none text-sm focus:bg-white transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddTicker(e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const input = document.querySelector('input[id="enter-new-symbol-input"]') as HTMLInputElement;
+                      if (input?.value) {
+                        handleAddTicker(input.value);
+                        input.value = '';
+                      }
+                    }}
+                    className="h-6 px-2 mr-1 font-bold bg-blue-500 hover:bg-blue-600 cursor-pointer text-white text-xs rounded transition-colors flex-shrink-0"
+                  >
+                    Enter ↵
+                  </button>
+                </div>
               </td>
-              {columns.headers.map((_, colIndex) => (
-                <td
-                  key={colIndex}
-                  className="min-w-24 h-8 border-r border-gray-200 bg-gray-25 hover:bg-blue-50 cursor-pointer"
-                  onClick={() => setSelectedCell({ row: data.length, col: colIndex })}
-                />
-              ))}
             </tr>
+
           </tbody>
         </table>
       </div>

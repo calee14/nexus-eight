@@ -108,7 +108,6 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
       // For example: onAddTicker?.(ticker.trim().toUpperCase());
       if (await trpc.addTicker.mutate(ticker)) {
         const newTickerData = await trpc.getTickerData.query(ticker);
-        console.log('hi');
         setData(prev => [...prev, newTickerData])
       }
     }
@@ -190,7 +189,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
 
                   <button
                     onClick={() => handleDeleteRow(row, rowIndex)}
-                    className="h-full w-12 inset-0 opacity-0 hidden group-hover:opacity-70 group-hover:block transition-opacity duration-200 text-gray-400 hover:text-red-500 font-bold text-lg items-center justify-center"
+                    className="h-full w-12 inset-0 opacity-0 hidden group-hover:opacity-70 group-hover:block hover:cursor-pointer transition-opacity duration-200 text-gray-400 hover:text-red-500 font-bold text-lg items-center justify-center"
                     title={`Delete row ${rowIndex + 1}`}
                   >×</button>
                 </td>

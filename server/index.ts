@@ -2,7 +2,6 @@ import { createTRPCRouter, publicProcedure } from './trpc';
 import { z } from 'zod';
 import { retireNexus4, retireNexus6, retireNexus8, retireNexus9 } from '../util/retire';
 
-const tickers = ['CRWD', 'APP', 'DDOG', 'GOOGL', 'META', 'AMZN', 'TTD'];
 
 // main router
 export const appRouter = createTRPCRouter({
@@ -15,8 +14,10 @@ export const appRouter = createTRPCRouter({
     }),
 
   getAllTickerData: publicProcedure
-    .query(async () => {
-      // return result as all async scraper funcs
+    .query(async ({ ctx }) => {
+      // return result as all async scraper funcs 
+      if (!(await ctx.redis.exists('tickers:set'))) { return []; }
+      const tickers = await ctx.redis.sMembers('tickers:set');
       const allTickerData = await Promise.all(
         tickers.map(async (ticker) => {
           const [peg, growth, fcf, ps] = await Promise.all([
@@ -33,22 +34,19 @@ export const appRouter = createTRPCRouter({
 
   addTicker: publicProcedure
     .input(z.string())
-    .mutation(async ({ input }) => {
-      if (tickers.indexOf(input) !== -1) {
+    .mutation(async ({ input, ctx }) => {
+      if (await ctx.redis.sIsMember('tickers:set', input)) {
         return false;
       }
-      tickers.push(input);
-      return true;
+      const status = await ctx.redis.sAdd('tickers:set', input);
+      return status !== -1;
     }),
 
   removeTicker: publicProcedure
     .input(z.string())
-    .mutation(async ({ input }) => {
-      if (tickers.indexOf(input) === -1) {
-        return false;
-      }
-      tickers.splice(tickers.indexOf(input), 1);
-      return true;
+    .mutation(async ({ input, ctx }) => {
+      const status = await ctx.redis.sRem('tickers:set', input);
+      return status;
     }),
 
   getTickerData: publicProcedure

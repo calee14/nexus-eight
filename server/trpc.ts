@@ -1,9 +1,10 @@
 import { initTRPC } from '@trpc/server';
 import { ZodError } from 'zod';
+import type { Context } from './context';
 
 // Initialize tRPC
 // This is the file you would import on the server to create new procedures.
-export const t = initTRPC.create({
+export const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
     return {
       ...shape,

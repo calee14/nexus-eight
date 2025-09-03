@@ -114,6 +114,13 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
     }
   };
 
+  const handleDeleteRow = async (row: SmartRow, index: number) => {
+    const ticker = row.ticker;
+    if (await trpc.removeTicker.mutate(ticker)) {
+      setData(prev => prev.filter((_, i) => i != index));
+    }
+  };
+
   // Convert column letters (A, B, C, etc.)
   const getColumnLetter = (index: number): string => {
     let result = '';
@@ -176,10 +183,16 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
 
           <tbody>
             {data.map((row, rowIndex) => (
-              <tr key={rowIndex} className="border-b border-gray-200">
+              <tr key={rowIndex} className="border-b border-gray-200 group">
                 {/* Row number */}
                 <td className="w-12 h-8 border-r border-gray-300 bg-gray-50 text-xs font-medium text-gray-500 text-center">
-                  {rowIndex + 1}
+                  <span className='block group-hover:opacity-0 group-hover:hidden transition-opacity duration-200'>{rowIndex + 1}</span>
+
+                  <button
+                    onClick={() => handleDeleteRow(row, rowIndex)}
+                    className="h-full w-12 inset-0 opacity-0 hidden group-hover:opacity-70 group-hover:block transition-opacity duration-200 text-gray-400 hover:text-red-500 font-bold text-lg items-center justify-center"
+                    title={`Delete row ${rowIndex + 1}`}
+                  >×</button>
                 </td>
 
                 {/* Data cells */}

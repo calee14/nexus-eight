@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const pingServer = async () => {
 
-      const resp: SmartRow[] = await trpc.getTickers.query();
+      const resp: SmartRow[] = await trpc.getAllTickerData.query();
       setData(resp);
       setColumns({
         headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PS'],
@@ -31,7 +31,7 @@ export default function Home() {
         {/* Centered table */}
         <div className="flex justify-center">
           <div className="w-full max-w-3xl">
-            <SmartTable data={data} columns={columns} />
+            <SmartTable data={data} columns={columns} setData={setData} />
           </div>
         </div>
       </div>

@@ -1,10 +1,12 @@
 // components/SmartTable.tsx
 import React, { useRef, useState, useEffect } from 'react';
 import { isSmartCell, SmartCell, SmartColumn, SmartRow } from '@/types';
+import { trpc } from '@/util/trpc';
 
 interface SmartTableProps {
   data: SmartRow[];
   columns: SmartColumn | undefined;
+  setData: React.Dispatch<React.SetStateAction<SmartRow[]>>;
 }
 
 interface PopupState {
@@ -14,7 +16,7 @@ interface PopupState {
   cellRef: HTMLElement | null;
 }
 
-const SmartTable = ({ data, columns }: SmartTableProps) => {
+const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
   const [popup, setPopup] = useState<PopupState>({
     isOpen: false,
@@ -99,11 +101,16 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
   };
 
   // add ticker
-  const handleAddTicker = (ticker: string) => {
+  const handleAddTicker = async (ticker: string) => {
     if (ticker.trim()) {
       console.log('Adding ticker:', ticker.trim().toUpperCase());
       // Add your logic here to handle the new ticker
       // For example: onAddTicker?.(ticker.trim().toUpperCase());
+      if (await trpc.addTicker.mutate(ticker)) {
+        const newTickerData = await trpc.getTickerData.query(ticker);
+        console.log('hi');
+        setData(prev => [...prev, newTickerData])
+      }
     }
   };
 
@@ -201,41 +208,6 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
               </tr>
             ))}
 
-            {/* Empty row to add new tickers */}
-            <tr key={`empty`} className="border-b border-gray-100">
-              <td
-                colSpan={columns.headers.length + 1}
-                className="h-8 border-r border-gray-200 bg-gray-25 p-0 relative"
-              >
-                <div className="flex items-center h-full">
-                  <input
-                    type="text"
-                    id="enter-new-symbol-input"
-                    placeholder="Enter new ticker symbol..."
-                    className="flex-1 h-full px-3 text-gray-600 bg-transparent border-none outline-none text-sm focus:bg-white transition-colors"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddTicker(e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => {
-                      const input = document.querySelector('input[id="enter-new-symbol-input"]') as HTMLInputElement;
-                      if (input?.value) {
-                        handleAddTicker(input.value);
-                        input.value = '';
-                      }
-                    }}
-                    className="h-6 px-2 mr-1 font-bold bg-blue-500 hover:bg-blue-600 cursor-pointer text-white text-xs rounded transition-colors flex-shrink-0"
-                  >
-                    Enter ↵
-                  </button>
-                </div>
-              </td>
-            </tr>
-
           </tbody>
         </table>
       </div>
@@ -248,6 +220,39 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
         onMouseEnter={() => {/* Keep popup open when hovering over it */ }}
         onMouseLeave={() => setPopup(prev => ({ ...prev, isOpen: false }))}
       />
+      {/* Empty row to add new tickers */}
+      <div className="w-full border-b border-gray-100 border-t-gray-2--">
+        <div
+          className="h-8 border-r border-gray-200 bg-gray-25 p-0 relative"
+        >
+          <div className="flex items-center h-full">
+            <input
+              type="text"
+              id="enter-new-symbol-input"
+              placeholder="Enter new ticker symbol..."
+              className="flex-1 h-full px-3 text-gray-600 bg-transparent border-none outline-none text-sm focus:bg-white transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddTicker(e.currentTarget.value);
+                  e.currentTarget.value = '';
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                const input = document.querySelector('input[id="enter-new-symbol-input"]') as HTMLInputElement;
+                if (input?.value) {
+                  handleAddTicker(input.value);
+                  input.value = '';
+                }
+              }}
+              className="h-6 px-2 mr-1 font-bold bg-blue-500 hover:bg-blue-600 cursor-pointer text-white text-xs rounded transition-colors flex-shrink-0"
+            >
+              Enter ↵
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Excel-style status bar */}
       <div className="bg-gray-100 border-t border-gray-300 px-4 py-1 text-xs text-gray-600 flex justify-between">
@@ -279,9 +284,9 @@ const SmartCellPopup: React.FC<SmartCellPopupProps> = ({
   onMouseEnter,
   onMouseLeave
 }) => {
-  if (!isOpen) return null;
+  if (!isOpen || !value || !value.at(0)) return null;
   const data = (value as SmartCell)!.map(ele => ele.at(1) as number);
-  const currValue = value.at(0).at(1) as number;
+  const currValue = value.at(0)?.at(1) as number;
   const minRange = Math.min(...data.slice(1));
   const maxRange = Math.max(...data.slice(1));
 

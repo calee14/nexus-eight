@@ -247,6 +247,10 @@ const SmartCellPopup: React.FC<SmartCellPopupProps> = ({
   onMouseLeave
 }) => {
   if (!isOpen) return null;
+  const data = (value as SmartCell)!.map(ele => ele.at(1) as number);
+  const currValue = value.at(0).at(1) as number;
+  const minRange = Math.min(...data.slice(1));
+  const maxRange = Math.max(...data.slice(1));
 
   return (
     <div
@@ -268,21 +272,36 @@ const SmartCellPopup: React.FC<SmartCellPopupProps> = ({
       {/* Content Area - You can customize this */}
       <div className="space-y-2">
         <div className="text-sm text-gray-600">
-          Raw Data:
-        </div>
-        <div className="bg-gray-50 p-2 rounded text-xs font-mono max-h-32 overflow-y-auto">
-          {JSON.stringify(value, null, 2)}
+          Value: {currValue}
         </div>
 
         {/* Add your custom popup content here */}
         <div className="mt-4 space-y-2">
           <div className="text-sm font-medium text-gray-700">
-            Custom Content Area
+            Range: ({minRange}, {maxRange})
           </div>
           <div className="text-sm text-gray-600">
             {/* This is where you'll implement your custom popup content */}
-            Replace this with your custom component/content
+            {currValue > maxRange ? <p>Metric is <span className='font-bold'>above</span> 6-quarter range. If Strong Growth → stock pricing in aggressive growth, thus <span className='font-bold'>Buy/Hold</span>. If Weak Growth → stock trading in overvalued prices, thus <span className='font-bold'>Sell</span></p>
+              : currValue > (maxRange + minRange) / 2 ? <p>Metric is in <span className='font-bold'>upper half</span> of 6-quarter range. If Strong Growth → stock is getting priced in, thus <span className='font-bold'>Buy/Hold</span>. If Weak Growth → market realize stock is expensive, thus <span className='font-bold'>Sell/Hold</span></p>
+                : currValue > minRange ? <p>Metric is in <span className='font-bold'>lower half</span> of 6-quarter range. If Strong Growth → good value, thus <span className='font-bold'>Buy</span>. If Weak Growth → exercise caution, thus <span className='font-bold'>Sell/Hold</span></p>
+                  : <p>Metric is <span className='font-bold'>below</span> 6-quarter min. If Strong Growth → extremely undervalued, thus <span className='font-bold'>Strong Buy</span>. If Weak Growth → market is pessimistic, thus <span className='font-bold'>Strong Sell</span></p>
+            }
           </div>
+          <div className="text-sm text-gray-600">
+            <p>Check <span className="italic">Growth</span> column to confirm action.</p>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 p-2 rounded text-xs font-mono max-h-32 overflow-y-auto">
+          {
+            (value as SmartCell)!.map((ele, i) => {
+              return (
+                <p key={i} className="text-sm text-gray-800">{ele.at(0)}: {ele.at(1)}</p>
+              );
+            })
+          }
+
         </div>
       </div>
 

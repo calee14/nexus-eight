@@ -52,20 +52,22 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
     event: React.MouseEvent<HTMLTableCellElement>
   ) => {
     if (isSmartCell(value)) {
+      const element = event.currentTarget;
       const rect = event.currentTarget.getBoundingClientRect();
       const tableRect = tableRef.current?.getBoundingClientRect();
       setTimeout(() => {
-        setPopup({
-          isOpen: true,
-          value: value,
-          position: {
-            x: rect.right - (tableRect?.left || 0),
-            y: rect.top - (tableRect?.top || 0)
-          },
-          cellRef: event.currentTarget
-        });
-
-      }, 100);
+        if (element.matches(':hover')) {
+          setPopup({
+            isOpen: true,
+            value: value,
+            position: {
+              x: rect.right - (tableRect?.left || 0),
+              y: rect.top - (tableRect?.top || 0)
+            },
+            cellRef: event.currentTarget
+          });
+        }
+      }, 200);
     }
   };
 
@@ -132,7 +134,7 @@ const SmartTable = ({ data, columns }: SmartTableProps) => {
         <span className="ml-4 text-xs">{data.length} rows × {columns.headers.length} columns</span>
       </div>
 
-      <div className="overflow-auto max-h-96">
+      <div ref={tableRef} className="overflow-auto max-h-96">
         <table className="w-full border-collapse">
           {/* Column headers with letters */}
           <thead>
@@ -288,8 +290,8 @@ const SmartCellPopup: React.FC<SmartCellPopupProps> = ({
       id="smart-cell-popup"
       className="absolute bg-white border-2 border-blue-500 rounded-lg shadow-xl p-4 z-50 min-w-64 max-w-80"
       style={{
-        left: position.x + 10,
-        top: position.y + 30,
+        left: position.x + 130,
+        top: position.y + 130,
         transform: position.x > 300 ? 'translateX(-100%)' : 'none'
       }}
       onMouseEnter={onMouseEnter}

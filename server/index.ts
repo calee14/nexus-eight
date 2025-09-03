@@ -2,7 +2,7 @@ import { createTRPCRouter, publicProcedure } from './trpc';
 import { z } from 'zod';
 import { retireNexus4, retireNexus6, retireNexus8, retireNexus9 } from '../util/retire';
 
-const tickers = ['CRWD', 'APP'];
+const tickers = ['CRWD', 'APP', 'DDOG', 'GOOGL', 'META', 'AMZN'];
 
 // main router
 export const appRouter = createTRPCRouter({

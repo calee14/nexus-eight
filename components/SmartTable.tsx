@@ -11,7 +11,7 @@ interface SmartTableProps {
 
 interface PopupState {
   isOpen: boolean;
-  value: any;
+  value?: SmartCell;
   position: { x: number, y: number };
   cellRef: HTMLElement | null;
 }
@@ -20,7 +20,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
   const [popup, setPopup] = useState<PopupState>({
     isOpen: false,
-    value: null,
+    value: undefined,
     position: { x: 0, y: 0 },
     cellRef: null,
   });
@@ -50,7 +50,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
   };
 
   const handleCellMouseEnter = (
-    value: any,
+    value: string | SmartCell,
     event: React.MouseEvent<HTMLTableCellElement>
   ) => {
     if (isSmartCell(value)) {
@@ -83,7 +83,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
   };
 
   // create cell
-  const renderCellValue = (value: any): React.ReactNode => {
+  const renderCellValue = (value: string | SmartCell | number): React.ReactNode => {
     if (value === null || value === undefined) {
       return '';
     }
@@ -134,7 +134,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
   if (!columns) {
     return (
       <div className="flex items-center justify-center h-64 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-        <p className="text-gray-800">No columns defined</p>
+        <p className="text-gray-800">Loading data...</p>
       </div>
     );
   }
@@ -283,7 +283,7 @@ export default SmartTable;
 
 interface SmartCellPopupProps {
   isOpen: boolean;
-  value: any;
+  value: SmartCell;
   position: { x: number, y: number };
   onMouseEnter: () => void;
   onMouseLeave: () => void;

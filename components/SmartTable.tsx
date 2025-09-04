@@ -316,7 +316,7 @@ const SmartCellPopup: React.FC<SmartCellPopupProps> = ({
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
-        <h3 className="font-medium text-gray-800">Last Calculated: {value.at(0).at(0)}</h3>
+        <h3 className="font-medium text-gray-800">Last Calculated: {value.at(0)?.at(0)}</h3>
       </div>
 
       {/* Content Area - You can customize this */}

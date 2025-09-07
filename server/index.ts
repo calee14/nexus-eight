@@ -28,10 +28,11 @@ export const appRouter = createTRPCRouter({
         })
       );
 
-      // update last updated time
-      const currTime = new Date().toISOString();
-      ctx.redis.set('cache:ticker:updatedat', currTime);
-
+      if (input.refresh) {
+        // update last updated time
+        const currTime = new Date().toISOString();
+        ctx.redis.set('cache:ticker:updatedat', currTime);
+      }
       return allTickerData;
     }),
 

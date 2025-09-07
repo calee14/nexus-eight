@@ -143,6 +143,43 @@ export async function retireNexus4(ticker: string) {
     console.error('Error fetching or parsing the page:', error);
   }
 }
+
+/*
+ * returns recent pe ratio
+ * */
+export async function retireNexus3(ticker: string) {
+  try {
+    const url = `https://stockanalysis.com/stocks/${ticker.toLowerCase()}/financials/ratios/?p=quarterly`
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+
+    // get dates for peg ratios
+    const dateTds = $('div').filter(function () {
+      return $(this).text().trim() === "Period Ending";
+    }).parent().siblings();
+    const periods = dateTds.toArray()
+      .map(ele => $(ele).text().slice(SLICE_DATE));
+
+    const targetTds = $('div').filter(function () {
+      return $(this).text().trim() === "PE Ratio";
+    }).parent().siblings();
+    const fcfRatios: number[] = targetTds.toArray()
+      .map(ele => parseFloat($(ele).text()))
+      .filter(num => !Number.isNaN(num))
+      .slice(0, SLICE_DATA);
+
+    periods.splice(fcfRatios.length);
+
+    if (periods.length === fcfRatios.length) {
+      return periods.map((period, i) => [period, fcfRatios[i]]);
+    }
+
+  } catch (error) {
+    console.error('Error fetching or parsing the page:', error);
+  }
+}
+
+
 // Replace with the URL you want to scrape
 // retireNexus8('CRWD');
 // retireNexus6('CRWD');

@@ -1,6 +1,6 @@
 import { createTRPCRouter, publicProcedure } from './trpc';
 import { z } from 'zod';
-import { retireNexus4, retireNexus6, retireNexus8, retireNexus9 } from '../util/retire';
+import { fetchCachedTickerData } from '@/lib/fetchCachedTickerData';
 
 
 // main router
@@ -14,21 +14,24 @@ export const appRouter = createTRPCRouter({
     }),
 
   getAllTickerData: publicProcedure
-    .query(async ({ ctx }) => {
-      // return result as all async scraper funcs 
-      if (!(await ctx.redis.exists('tickers:set'))) { return []; }
+    .input(z.object({ refresh: z.boolean().default(false) }))
+    .query(async ({ ctx, input }) => {
+      if (!(await ctx.redis.exists('tickers:set'))) {
+        return [];
+      }
       const tickers = await ctx.redis.sMembers('tickers:set');
+
+      // collect all data for each ticker from async scraper funcs
       const allTickerData = await Promise.all(
         tickers.map(async (ticker) => {
-          const [peg, growth, fcf, ps] = await Promise.all([
-            retireNexus8(ticker),
-            retireNexus6(ticker),
-            retireNexus9(ticker),
-            retireNexus4(ticker)
-          ]);
-          return { ticker: ticker, peg: peg, growth: growth, fcf: fcf, ps: ps };
+          return await fetchCachedTickerData(ticker, ctx.redis, input.refresh);
         })
       );
+
+      // update last updated time
+      const currTime = new Date().toISOString();
+      ctx.redis.set('cache:ticker:updatedat', currTime);
+
       return allTickerData;
     }),
 
@@ -50,16 +53,13 @@ export const appRouter = createTRPCRouter({
     }),
 
   getTickerData: publicProcedure
-    .input(z.string())
-    .query(async ({ input }) => {
-      const [peg, growth, fcf, ps] = await Promise.all([
-        retireNexus8(input),
-        retireNexus6(input),
-        retireNexus9(input),
-        retireNexus4(input)
-      ]);
-      return { ticker: input, peg: peg, growth: growth, fcf: fcf, ps: ps };
-
+    .input(z.object({ ticker: z.string(), refresh: z.boolean().default(false) }))
+    .query(async ({ ctx, input }) => {
+      return await fetchCachedTickerData(input.ticker, ctx.redis, input.refresh);
+    }),
+  getLastUpdated: publicProcedure
+    .query(async ({ ctx }) => {
+      return await ctx.redis.get('cache:ticker:updatedat');
     })
 });
 

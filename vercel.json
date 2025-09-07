@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/refreshTickers",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

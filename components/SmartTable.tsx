@@ -25,6 +25,15 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
     cellRef: null,
   });
   const tableRef = useRef<HTMLDivElement>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>('');
+
+  useEffect(() => {
+    const getLastUpdated = async () => {
+      setLastUpdated(await trpc.getLastUpdated.query());
+    }
+    getLastUpdated();
+
+  }, []);
 
   useEffect(() => {
     const handleGlobalMouseMove = (event: MouseEvent) => {
@@ -107,12 +116,13 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
       // Add your logic here to handle the new ticker
       // For example: onAddTicker?.(ticker.trim().toUpperCase());
       if (await trpc.addTicker.mutate(ticker)) {
-        const newTickerData = await trpc.getTickerData.query(ticker);
+        const newTickerData = await trpc.getTickerData.query({ ticker: ticker });
         setData(prev => [...prev, newTickerData])
       }
     }
   };
 
+  // delete row from table and db
   const handleDeleteRow = async (row: SmartRow, index: number) => {
     const ticker = row.ticker;
     if (await trpc.removeTicker.mutate(ticker)) {
@@ -129,6 +139,12 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
     }
     return result;
   };
+
+  const handleUpdateAllTickers = () => {
+    trpc.getAllTickerData.query({ refresh: true }).then(async () => {
+      setLastUpdated(await trpc.getLastUpdated.query());
+    })
+  }
 
   // if no columns render nothing
   if (!columns) {
@@ -269,6 +285,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
       {/* Excel-style status bar */}
       <div className="bg-gray-100 border-t border-gray-300 px-4 py-1 text-xs text-gray-600 flex justify-between">
         <span className='text-green-500 font-bold'>Ready</span>
+        <a className="hover: cursor-pointer" onClick={handleUpdateAllTickers}>Last Updated: {lastUpdated}</a>
         {selectedCell && (
           <span>
             Cell: {getColumnLetter(selectedCell.col)}{selectedCell.row + 1}

@@ -6,6 +6,7 @@ export interface SmartRow {
   peg?: SmartCell;
   growth?: SmartCell;
   fcf?: SmartCell;
+  pe?: SmartCell;
   ps?: SmartCell;
 }
 

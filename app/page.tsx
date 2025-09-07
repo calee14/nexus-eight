@@ -10,15 +10,18 @@ export default function Home() {
   const [data, setData] = useState<SmartRow[]>([]);
   const [columns, setColumns] = useState<SmartColumn>();
 
+  const updateData = async () => {
+    const resp: SmartRow[] = await trpc.getAllTickerData.query({ refresh: false });
+    setData(resp);
+    setColumns({
+      headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PE', 'PS'],
+      keys: ['ticker', 'peg', 'growth', 'fcf', 'pe', 'ps']
+    });
+  };
+
   useEffect(() => {
     const pingServer = async () => {
-
-      const resp: SmartRow[] = await trpc.getAllTickerData.query();
-      setData(resp);
-      setColumns({
-        headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PS'],
-        keys: ['ticker', 'peg', 'growth', 'fcf', 'ps']
-      })
+      await updateData();
     }
 
     pingServer();

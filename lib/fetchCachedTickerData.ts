@@ -1,5 +1,5 @@
 // lib/fetchCachedTickerData.ts
-import { retireNexus3, retireNexus4, retireNexus6, retireNexus8, retireNexus9 } from "@/util/retire";
+import { retireNexus3, retireNexus4, retireNexus6, retireNexus8, retireNexus9 } from "@/lib/retire";
 import { redis } from "./redis";
 
 type RedisType = typeof redis;

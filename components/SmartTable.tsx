@@ -1,12 +1,12 @@
 // components/SmartTable.tsx
 import React, { useRef, useState, useEffect } from 'react';
 import { isSmartCell, SmartCell, SmartColumn, SmartRow } from '@/types';
-import { trpc } from '@/util/trpc';
+import { trpc } from '@/lib/trpc';
 
 interface SmartTableProps {
   data: SmartRow[];
   columns: SmartColumn | undefined;
-  setData: React.Dispatch<React.SetStateAction<SmartRow[]>>;
+  setData: (data: SmartRow[]) => void;
 }
 
 interface PopupState {
@@ -117,7 +117,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
       // For example: onAddTicker?.(ticker.trim().toUpperCase());
       if (await trpc.addTicker.mutate(ticker)) {
         const newTickerData = await trpc.getTickerData.query({ ticker: ticker });
-        setData(prev => [...prev, newTickerData])
+        setData([...data, newTickerData])
       }
     }
   };
@@ -126,7 +126,7 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
   const handleDeleteRow = async (row: SmartRow, index: number) => {
     const ticker = row.ticker;
     if (await trpc.removeTicker.mutate(ticker)) {
-      setData(prev => prev.filter((_, i) => i != index));
+      setData(data.filter((_, i) => i != index));
     }
   };
 

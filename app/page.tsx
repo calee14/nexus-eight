@@ -22,6 +22,9 @@ export default function Home() {
 
   const updateDataRanked = (data: SmartRow[]) => {
     const ranks = data.map((row, i) => {
+      if (!row.peg || !row.growth) {
+        return [-1, i];
+      }
       const pegData = (row.peg)!.map(ele => ele.at(1) as number);
       const currPegValue = (row.peg)!.at(0)?.at(1) as number;
       const minPegRange = Math.min(...pegData.slice(1));
@@ -41,6 +44,7 @@ export default function Home() {
         : currGrowthValue > (maxGrowthRange + minGrowthRange) / 2 ? 4
           : currGrowthValue > minGrowthRange ? 2
             : 1;
+
       return [pegRank + growthRank, i];
     });
 

@@ -7,7 +7,7 @@ export interface SmartRow {
   growth?: SmartCell;
   fcf?: SmartCell;
   pe?: SmartCell;
-  ps?: SmartCell;
+  psg?: SmartCell;
 }
 
 export type SmartCell = (string | number)[][] | undefined;

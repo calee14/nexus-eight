@@ -27,7 +27,19 @@ export async function fetchCachedTickerData(ticker: string, redis: RedisType, re
     retireNexus3(ticker),
     retireNexus4(ticker)
   ]);
-  const tickerData = { ticker: ticker, peg: peg, growth: growth, fcf: fcf, pe: pe, ps: ps };
+
+  // convert ps to psg 
+  const psg = ps && growth ? ps.map((data, i) => {
+    const psRatio = data[1] as number;
+    const growthYoY = i < growth.length ? growth[i][1] as number : growth[growth.length - 1][1] as number;
+
+    return [data[0], (psRatio / growthYoY).toFixed(2)];
+  })
+    : undefined;
+
+  console.log(psg);
+
+  const tickerData = { ticker: ticker, peg: peg, growth: growth, fcf: fcf, pe: pe, psg: psg };
   try {
     await redis.setEx(cacheKey, cacheExpiration, JSON.stringify(tickerData));
   } catch (error) {

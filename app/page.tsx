@@ -14,9 +14,10 @@ export default function Home() {
   const updateData = async () => {
     const resp: SmartRow[] = await trpc.getAllTickerData.query({ refresh: false });
     updateDataRanked(resp);
+    detectRogueReplicants(resp);
     setColumns({
-      headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PE', 'PS'],
-      keys: ['ticker', 'peg', 'growth', 'fcf', 'pe', 'ps']
+      headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PE', 'PS/Growth'],
+      keys: ['ticker', 'peg', 'growth', 'fcf', 'pe', 'psg']
     });
   };
 
@@ -51,6 +52,25 @@ export default function Home() {
     ranks.sort((a, b) => a[0] - b[0]);
     const newData = reorderList(data, ranks.map((ele) => ele[1])).reverse();
     setData(newData);
+  };
+
+  const detectRogueReplicants = (data: SmartRow[]) => {
+    const rogues = data.map((row, i) => {
+      if (!row.peg || !row.growth) {
+        return;
+      }
+      const pegData = row.peg;
+      const growthData = row.growth;
+
+      const pegg = pegData.map((peg, i) => {
+        return peg[1] as number / (growthData[i][1] as number);
+      });
+
+      if (row.ticker === "META") {
+        console.log(pegg);
+      }
+      return pegg;
+    });
   };
 
   useEffect(() => {

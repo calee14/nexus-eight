@@ -16,8 +16,8 @@ export default function Home() {
     updateDataRanked(resp);
     detectRogueReplicants(resp);
     setColumns({
-      headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PE', 'PS/Growth'],
-      keys: ['ticker', 'peg', 'growth', 'fcf', 'pe', 'psg']
+      headers: ['Ticker', 'PEG', 'Growth', 'P/FCF', 'PE', 'PS/Growth', 'PS'],
+      keys: ['ticker', 'peg', 'growth', 'fcf', 'pe', 'psg', 'ps']
     });
   };
 
@@ -66,7 +66,7 @@ export default function Home() {
         return peg[1] as number / (growthData[i][1] as number);
       });
 
-      if (row.ticker === "META") {
+      if (row.ticker === "ORCL") {
         console.log(pegg);
       }
       return pegg;

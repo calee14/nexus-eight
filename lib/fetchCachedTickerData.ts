@@ -37,9 +37,8 @@ export async function fetchCachedTickerData(ticker: string, redis: RedisType, re
   })
     : undefined;
 
-  console.log(psg);
 
-  const tickerData = { ticker: ticker, peg: peg, growth: growth, fcf: fcf, pe: pe, psg: psg };
+  const tickerData = { ticker: ticker, peg: peg, growth: growth, fcf: fcf, pe: pe, psg: psg, ps: ps };
   try {
     await redis.setEx(cacheKey, cacheExpiration, JSON.stringify(tickerData));
   } catch (error) {

@@ -24,7 +24,12 @@ export const appRouter = createTRPCRouter({
       // collect all data for each ticker from async scraper funcs
       const allTickerData = await Promise.all(
         tickers.map(async (ticker) => {
-          return await fetchCachedTickerData(ticker, ctx.redis, input.refresh);
+          try {
+            return await fetchCachedTickerData(ticker, ctx.redis, input.refresh);
+          } catch (error) {
+            console.error('error when fetching all cached data', error);
+            return {}
+          }
         })
       );
 

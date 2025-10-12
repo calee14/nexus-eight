@@ -13,7 +13,8 @@ export async function fetchCachedTickerData(ticker: string, redis: RedisType, re
     const cachedData = await redis.get(cacheKey);
     if (cachedData) {
       try {
-        return JSON.parse(cachedData);
+        const cachedObject = JSON.parse(cachedData);
+        return cachedObject;
       } catch {
         console.error('Error parsing cached ticker data: ', ticker);
       }

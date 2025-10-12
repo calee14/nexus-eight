@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Optionally pre-warm the cache by fetching fresh data
     // This ensures the next user request is fast
     const currTime = new Date().toISOString();
-    redis.set('cache:ticker:updatedat', currTime);
+    redis.set('cache:ticker:updatedate', currTime);
     console.log('Ticker data updated successfully');
 
     return Response.json({

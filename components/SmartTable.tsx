@@ -115,9 +115,12 @@ const SmartTable: React.FC<SmartTableProps> = ({ data, columns, setData }) => {
       console.log('Adding ticker:', ticker.trim().toUpperCase());
       // Add your logic here to handle the new ticker
       // For example: onAddTicker?.(ticker.trim().toUpperCase());
-      if (await trpc.addTicker.mutate(ticker)) {
-        const newTickerData = await trpc.getTickerData.query({ ticker: ticker });
-        setData([...data, newTickerData])
+      const dataExists = await trpc.getTickerData.query({ ticker: ticker });
+      if (dataExists) {
+        if (await trpc.addTicker.mutate(ticker)) {
+          const newTickerData = await trpc.getTickerData.query({ ticker: ticker });
+          setData([...data, newTickerData])
+        }
       }
     }
   };

@@ -31,7 +31,7 @@ export const appRouter = createTRPCRouter({
       if (input.refresh) {
         // update last updated time
         const currTime = new Date().toISOString();
-        ctx.redis.set('cache:ticker:updatedat', currTime);
+        ctx.redis.set('cache:ticker:updatedate', currTime);
       }
       return allTickerData;
     }),
@@ -60,7 +60,7 @@ export const appRouter = createTRPCRouter({
     }),
   getLastUpdated: publicProcedure
     .query(async ({ ctx }) => {
-      return await ctx.redis.get('cache:ticker:updatedat');
+      return await ctx.redis.get('cache:ticker:updatedate');
     })
 });
 
